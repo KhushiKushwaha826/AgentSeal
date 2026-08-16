@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AgentSeal — Verification Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<div class="header-bar">
+
+    <div class="brand">
+
+        <div class="brand-mark">
+            AS
+        </div>
+
+        <div>
+            <h1>AgentSeal</h1>
+
+            <span>
+                Verification layer for autonomous AI agents
+            </span>
+        </div>
+
+    </div>
+
+
+    <div class="status-pill">
+
+        <span class="dot"></span>
+
+        Chain connected — Polygon Amoy
+
+    </div>
+
+</div>
+
+
+<!-- ================= MAIN ================= -->
+
+<div class="wrap">
+
+
+    <!-- INTRO -->
+
+    <div class="intro">
+
+        <h2>
+            Action Verification Dashboard
+        </h2>
+
+        <p>
+            Every decision your agents make gets hashed, signed,
+            and anchored on-chain. Tamper with a record after the
+            fact, and this dashboard catches it instantly.
+        </p>
+
+    </div>
+
+
+
+    <!-- ================= STAT CARDS ================= -->
+
+    <div class="stat-row">
+
+
+        <!-- VERIFIED ACTIONS -->
+
+        <div class="card stat-card">
+
+            <h3>
+                Verified Actions
+            </h3>
+
+            <div class="stat-value">
+                128
+            </div>
+
+            <div class="stat-label">
+                Total logged this session
+            </div>
+
+            <div class="stat-trend">
+                ↑ 12 in the last hour
+            </div>
+
+        </div>
+
+
+
+        <!-- ACTIVE AGENTS -->
+
+        <div class="card stat-card">
+
+            <h3>
+                Active Agents
+            </h3>
+
+            <div class="stat-value">
+                3
+            </div>
+
+            <div class="stat-label">
+                Registered on-chain
+            </div>
+
+            <div class="stat-trend">
+                All signatures valid
+            </div>
+
+        </div>
+
+
+
+        <!-- FLAGS -->
+
+        <div class="card stat-card">
+
+            <h3>
+                Flags Raised
+            </h3>
+
+            <div
+                class="stat-value"
+                id="flagCount"
+            >
+                0
+            </div>
+
+            <div class="stat-label">
+                Tamper attempts caught
+            </div>
+
+            <div
+                class="stat-trend"
+                id="flagTrend"
+                style="color:#5b6472;"
+            >
+                No issues detected
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= MAIN GRID ================= -->
+
+    <div class="main-grid">
+
+
+        <!-- ================= RECENT ACTIONS ================= -->
+
+        <div class="card">
+
+            <h3>
+                Recent Agent Actions
+            </h3>
+
+
+            <ul
+                class="log-list"
+                id="logList"
+            >
+
+
+                <!-- ACTION 1 -->
+
+                <li
+                    class="log-item"
+                    data-id="1"
+                >
+
+                    <div class="log-main">
+
+                        <span class="log-title">
+                            Expense #4471 — Approved ₹5,000
+                        </span>
+
+                        <span class="log-hash">
+                            0x8f2a...c19d
+                        </span>
+
+                    </div>
+
+
+                    <span class="badge verified">
+                        Verified
+                    </span>
+
+                </li>
+
+
+
+                <!-- ACTION 2 -->
+
+                <li
+                    class="log-item"
+                    data-id="2"
+                >
+
+                    <div class="log-main">
+
+                        <span class="log-title">
+                            Travel Agent — Booked Flight
+                        </span>
+
+                        <span class="log-hash">
+                            0x7bc1...a82f
+                        </span>
+
+                    </div>
+
+
+                    <span class="badge verified">
+                        Verified
+                    </span>
+
+                </li>
+
+
+
+                <!-- ACTION 3 -->
+
+                <li
+                    class="log-item"
+                    data-id="3"
+                >
+
+                    <div class="log-main">
+
+                        <span class="log-title">
+                            Deployment Agent — Approved Deploy
+                        </span>
+
+                        <span class="log-hash">
+                            0x41de...72ac
+                        </span>
+
+                    </div>
+
+
+                    <span class="badge verified">
+                        Verified
+                    </span>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+
+
+        <!-- ================= CREATE NEW ACTION ================= -->
+
+        <div class="card">
+
+            <h3>
+                Log New Agent Action
+            </h3>
+
+
+            <label>
+                Agent Name
+            </label>
+
+            <input
+                type="text"
+                class="input-field"
+                placeholder="e.g. Expense Agent"
+            >
+
+
+            <label>
+                Action
+            </label>
+
+            <input
+                type="text"
+                class="input-field"
+                placeholder="e.g. Approved expense"
+            >
+
+
+            <label>
+                Value
+            </label>
+
+            <input
+                type="text"
+                class="input-field"
+                placeholder="e.g. ₹5,000"
+            >
+
+
+            <div class="btn-row">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="logNewAction()"
+                >
+                    Log Action
+                </button>
+
+                <button
+                    class="btn btn-outline"
+                    onclick="simulateTamper()"
+                >
+                    Simulate Tamper
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= VERIFICATION ================= -->
+
+    <div
+        class="card"
+        style="margin-top:2rem;"
+    >
+
+        <h3>
+            Verification
+        </h3>
+
+        <p>
+            Recalculate the stored data hash and compare it
+            with the original hash recorded for the action.
+        </p>
+
+
+        <div class="btn-row">
+
+            <button
+                class="btn btn-primary"
+                onclick="runVerification()"
+            >
+                Run Verification
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= REASONING LOG ================= -->
+
+    <div
+        class="card"
+        style="margin-top:2rem;"
+    >
+
+        <h3>
+            Verification Activity
+        </h3>
+
+
+        <div id="reasoningLog"></div>
+
+    </div>
+
+
+</div>
+
+
+<!-- ================= JAVASCRIPT ================= -->
+<script src="/js/api.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

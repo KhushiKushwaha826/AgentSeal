@@ -1,0 +1,4 @@
+{
+  "_comment": "Placeholder file. This will hold the ABI (Application Binary Interface) of the AgentLedger smart contract once it is written and compiled with Solidity/Hardhat. Not used in the current version of the backend.",
+  "abi": []
+}
