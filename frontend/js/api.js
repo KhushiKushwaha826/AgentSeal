@@ -99,3 +99,56 @@ async function tamperDecision(id) {
 
     return await response.json();
 }
+
+
+// ==========================================
+// GET ALL DECISIONS
+// GET /decisions
+// ==========================================
+async function getAllDecisions() {
+    const response = await fetch(`${API_BASE}/decisions`);
+
+    if (!response.ok) {
+        let errorMessage = "Failed to fetch decisions";
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch (_) {}
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}
+
+
+// ==========================================
+// GET ALL DECISIONS
+// GET /decisions
+// ==========================================
+async function getAllDecisions() {
+
+    const response = await fetch(
+        `${API_BASE}/decisions/`
+    );
+
+    if (!response.ok) {
+
+        let errorMessage =
+            "Failed to fetch decisions";
+
+        try {
+            const errorData =
+                await response.json();
+
+            errorMessage =
+                errorData.detail || errorMessage;
+
+        } catch (_) {}
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}

@@ -2,10 +2,14 @@ const reasoningLog = document.getElementById("reasoningLog");
 const flagCountEl = document.getElementById("flagCount");
 const flagTrendEl = document.getElementById("flagTrend");
 
+const verifiedCountEl = document.getElementById("verifiedCount");
+const activeAgentsEl = document.getElementById("activeAgents");
+const verifiedTrendEl = document.getElementById("verifiedTrend");
+const agentTrendEl = document.getElementById("agentTrend");
+
 let flagCount = 0;
 let lineDelay = 0;
 let nextId = 4;
-
 
 // ======================================================
 // LOGGING
@@ -40,6 +44,174 @@ function bootLog() {
 }
 
 bootLog();
+
+loadDashboardData();
+
+
+// ======================================================
+// LOAD REAL DATABASE DATA
+// ======================================================
+
+async function loadDashboardData() {
+
+    try {
+
+        const decisions = await getAllDecisions();
+
+        const list = document.getElementById("logList");
+
+        if (!list) return;
+
+        list.innerHTML = "";
+
+        let verifiedCount = 0;
+        let tamperedCount = 0;
+
+        const agents = new Set();
+
+        decisions.forEach(decision => {
+
+            agents.add(decision.agent_id);
+
+            if (decision.verified !== false) {
+                verifiedCount++;
+            }
+
+            if (decision.tampered === true) {
+                tamperedCount++;
+            }
+
+            addDecisionToDashboard(decision);
+        });
+
+
+        // ==============================
+        // UPDATE STATS
+        // ==============================
+
+        if (verifiedCountEl) {
+            verifiedCountEl.textContent = verifiedCount;
+        }
+
+        if (activeAgentsEl) {
+            activeAgentsEl.textContent = agents.size;
+        }
+
+        if (flagCountEl) {
+            flagCountEl.textContent = tamperedCount;
+        }
+
+        flagCount = tamperedCount;
+
+
+        if (verifiedTrendEl) {
+            verifiedTrendEl.textContent =
+                "Live database records";
+        }
+
+        if (agentTrendEl) {
+            agentTrendEl.textContent =
+                agents.size + " unique agents";
+        }
+
+        if (flagTrendEl) {
+
+            if (tamperedCount === 0) {
+
+                flagTrendEl.textContent =
+                    "No issues detected";
+
+                flagTrendEl.style.color = "#5b6472";
+
+            } else {
+
+                flagTrendEl.textContent =
+                    tamperedCount +
+                    " record" +
+                    (tamperedCount > 1 ? "s" : "") +
+                    " flagged";
+
+                flagTrendEl.style.color = "#d1453b";
+            }
+        }
+
+
+        pushLog(
+            "> " + decisions.length +
+            " actions loaded from database",
+            "ok"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load dashboard data:",
+            error
+        );
+
+        pushLog(
+            "> ERROR: failed to load database actions",
+            "warn"
+        );
+    }
+}
+
+
+// ======================================================
+// ADD DATABASE DECISION TO UI
+// ======================================================
+
+function addDecisionToDashboard(decision) {
+
+    const list = document.getElementById("logList");
+
+    if (!list) return;
+
+
+    const li = document.createElement("li");
+
+    li.className = "log-item";
+
+    li.dataset.id = decision.id;
+
+
+    const isTampered =
+        decision.tampered === true ||
+        decision.verified === false;
+
+
+    li.innerHTML = `
+        <div class="log-main">
+
+            <span class="log-title">
+                ${escapeHtml(decision.agent_id || "Unknown Agent")}
+                —
+                ${escapeHtml(decision.decision || "Unknown Action")}
+                —
+                ₹${escapeHtml(decision.amount ?? 0)}
+            </span>
+
+            <span class="log-hash">
+                ${escapeHtml(
+                    formatHash(decision.original_hash)
+                )}
+            </span>
+
+        </div>
+
+        <span class="badge ${isTampered ? "flagged" : "verified"}">
+            ${isTampered ? "Tampered" : "Verified"}
+        </span>
+    `;
+
+
+    if (isTampered) {
+        li.classList.add("tampered");
+    }
+
+
+    list.appendChild(li);
+}
 
 
 // ======================================================
@@ -460,4 +632,120 @@ function escapeHtml(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+
+// ======================================================
+// LOAD REAL DATABASE DECISIONS
+// ======================================================
+
+async function loadDashboardData() {
+
+    try {
+
+        const decisions =
+            await getAllDecisions();
+
+        const list =
+            document.getElementById("logList");
+
+        if (!list) return;
+
+        // Existing HTML/fake records hatao
+        list.innerHTML = "";
+
+        decisions.forEach(decision => {
+
+            addDecisionToDashboard(decision);
+
+        });
+
+        // Stats
+        updateDashboardStats(decisions);
+
+        pushLog(
+            "> " +
+            decisions.length +
+            " actions loaded from database",
+            "ok"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load dashboard data:",
+            error
+        );
+
+        pushLog(
+            "> ERROR: failed to load database actions",
+            "warn"
+        );
+    }
+}
+
+// ======================================================
+// UPDATE DASHBOARD STATS
+// ======================================================
+
+function updateDashboardStats(decisions) {
+
+    const verifiedCountEl =
+        document.getElementById("verifiedCount");
+
+    const activeAgentsEl =
+        document.getElementById("activeAgents");
+
+
+    // ==============================
+    // VERIFIED ACTIONS
+    // ==============================
+
+    if (verifiedCountEl) {
+
+        verifiedCountEl.textContent =
+            decisions.length;
+    }
+
+
+    // ==============================
+    // ACTIVE AGENTS
+    // ==============================
+
+    const agents =
+        new Set(
+            decisions.map(
+                decision => decision.agent_id
+            )
+        );
+
+    if (activeAgentsEl) {
+
+        activeAgentsEl.textContent =
+            agents.size;
+    }
+
+
+    // ==============================
+    // VERIFIED TREND
+    // ==============================
+
+    if (verifiedTrendEl) {
+
+        verifiedTrendEl.textContent =
+            decisions.length +
+            " total logged";
+    }
+
+
+    // ==============================
+    // AGENT TREND
+    // ==============================
+
+    if (agentTrendEl) {
+
+        agentTrendEl.textContent =
+            agents.size +
+            " unique agents";
+    }
 }

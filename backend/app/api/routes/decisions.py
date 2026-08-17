@@ -54,6 +54,23 @@ def create_decision(payload: DecisionCreate, db: Session = Depends(get_db)):
 
     return new_decision
 
+# ======================================================
+# GET ALL DECISIONS
+# ======================================================
+
+@router.get("/", response_model=list[DecisionResponse])
+def get_all_decisions(db: Session = Depends(get_db)):
+
+    decisions = (
+        db.query(Decision)
+        .order_by(Decision.id.desc())
+        .all()
+    )
+
+    return decisions
+
+
+
 
 @router.get("/{decision_id}", response_model=DecisionResponse)
 def get_decision(decision_id: int, db: Session = Depends(get_db)):
