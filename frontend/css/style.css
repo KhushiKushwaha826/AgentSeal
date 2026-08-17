@@ -433,7 +433,7 @@ h1, h2, h3, h4 { color: var(--text-heading); margin: 0; }
     font-size: 14px;
 }
 
-
+/* 
 .tamper-modal-box label {
 
     display: block;
@@ -443,8 +443,24 @@ h1, h2, h3, h4 { color: var(--text-heading); margin: 0; }
     margin-bottom: 6px;
 
     font-weight: 600;
+} */
+.tamper-modal-box label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #374151 !important;
+    opacity: 1 !important;
 }
 
+.tamper-modal-box label,
+.tamper-modal-box label * {
+    color: #374151 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #374151 !important;
+}
 
 .tamper-modal-box .input-field {
 
@@ -511,4 +527,16 @@ h1, h2, h3, h4 { color: var(--text-heading); margin: 0; }
     background: #d1453b;
 
     color: white;
+}
+
+
+.tamper-modal-box .input-field {
+    color: #222;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tamper-modal-box .input-field::placeholder {
+    color: #6b7280;
+    opacity: 1;
 }

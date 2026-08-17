@@ -191,6 +191,8 @@ function addDecisionToDashboard(decision) {
         <div class="log-main">
 
             <span class="log-title">
+                #${decision.id}
+                —
                 ${escapeHtml(decision.agent_id || "Unknown Agent")}
                 —
                 ${escapeHtml(decision.decision || "Unknown Action")}
