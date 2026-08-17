@@ -78,20 +78,38 @@ async function verifyDecision(id) {
 // TAMPER DECISION
 // POST /decisions/{id}/tamper
 // ==========================================
-async function tamperDecision(id) {
+// ==========================================
+// TAMPER DECISION
+// POST /decisions/{id}/tamper
+// ==========================================
+async function tamperDecision(id, data) {
+
     const response = await fetch(
         `${API_BASE}/decisions/${id}/tamper`,
         {
-            method: "POST"
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(data)
         }
     );
 
     if (!response.ok) {
-        let errorMessage = "Tamper request failed";
+
+        let errorMessage =
+            "Tamper request failed";
 
         try {
-            const errorData = await response.json();
-            errorMessage = errorData.detail || errorMessage;
+
+            const errorData =
+                await response.json();
+
+            errorMessage =
+                errorData.detail || errorMessage;
+
         } catch (_) {}
 
         throw new Error(errorMessage);
@@ -99,7 +117,6 @@ async function tamperDecision(id) {
 
     return await response.json();
 }
-
 
 // ==========================================
 // GET ALL DECISIONS

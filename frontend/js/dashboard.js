@@ -160,7 +160,6 @@ async function loadDashboardData() {
 // ======================================================
 // ADD DATABASE DECISION TO UI
 // ======================================================
-
 function addDecisionToDashboard(decision) {
 
     const list = document.getElementById("logList");
@@ -174,6 +173,13 @@ function addDecisionToDashboard(decision) {
 
     li.dataset.id = decision.id;
 
+    // Store original database data on this action
+    li.dataset.agent = decision.agent_id || "";
+    li.dataset.amount = decision.amount ?? 0;
+    li.dataset.decision = decision.decision || "";
+    li.dataset.description = decision.description || "";
+    li.dataset.user = decision.user || "";
+
 
     const isTampered =
         decision.tampered === true ||
@@ -181,6 +187,7 @@ function addDecisionToDashboard(decision) {
 
 
     li.innerHTML = `
+
         <div class="log-main">
 
             <span class="log-title">
@@ -199,9 +206,23 @@ function addDecisionToDashboard(decision) {
 
         </div>
 
-        <span class="badge ${isTampered ? "flagged" : "verified"}">
-            ${isTampered ? "Tampered" : "Verified"}
-        </span>
+
+        <div class="log-actions">
+
+            <span class="badge ${isTampered ? "flagged" : "verified"}">
+                ${isTampered ? "Tampered" : "Verified"}
+            </span>
+
+
+            <button
+                class="tamper-action-btn"
+                onclick="openTamperForm(this.closest('.log-item'))"
+            >
+                Simulate Tamper
+            </button>
+
+        </div>
+
     `;
 
 
@@ -212,7 +233,6 @@ function addDecisionToDashboard(decision) {
 
     list.appendChild(li);
 }
-
 
 // ======================================================
 // VERIFICATION
@@ -345,49 +365,205 @@ function markItemTampered(item) {
 // ACTUAL BACKEND REQUEST
 // ======================================================
 
-async function simulateTamper() {
+// ======================================================
+// OPEN TAMPER FORM
+// ======================================================
 
-    const items = Array.from(
-        document.querySelectorAll(".log-item")
-    );
+function openTamperForm(item) {
 
-    if (items.length === 0) {
+    const id = item.dataset.id;
 
-        pushLog(
-            "> no actions available for tampering",
-            "warn"
-        );
+    const agent =
+        item.dataset.agent || "";
 
-        return;
+    const amount =
+        item.dataset.amount || "";
+
+    const decision =
+        item.dataset.decision || "";
+
+    const description =
+        item.dataset.description || "";
+
+    const user =
+        item.dataset.user || "";
+
+
+    const existingModal =
+        document.getElementById("tamperModal");
+
+    if (existingModal) {
+        existingModal.remove();
     }
 
 
-    // Sirf non-tampered action choose karo
-    const availableItems = items.filter(
-        item => !item.classList.contains("tampered")
-    );
+    const modal =
+        document.createElement("div");
 
-    if (availableItems.length === 0) {
+    modal.id = "tamperModal";
+    modal.className = "tamper-modal";
 
-        pushLog(
-            "> all available records are already tampered",
-            "warn"
-        );
 
-        return;
+    modal.innerHTML = `
+
+        <div class="tamper-modal-box">
+
+            <div class="tamper-modal-header">
+
+                <h3>
+                    Simulate Tamper
+                </h3>
+
+                <button
+                    class="tamper-close"
+                    onclick="closeTamperForm()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <p class="tamper-help">
+
+                Modify any stored value to simulate
+                unauthorized data tampering.
+
+            </p>
+
+
+            <label>
+                Agent Name
+            </label>
+
+            <input
+                id="tamperAgent"
+                class="input-field"
+                value="${escapeHtml(agent)}"
+            >
+
+
+            <label>
+                Action
+            </label>
+
+            <input
+                id="tamperDecision"
+                class="input-field"
+                value="${escapeHtml(decision)}"
+            >
+
+
+            <label>
+                Value
+            </label>
+
+            <input
+                id="tamperAmount"
+                type="number"
+                class="input-field"
+                value="${escapeHtml(amount)}"
+            >
+
+
+            <label>
+                Description
+            </label>
+
+            <input
+                id="tamperDescription"
+                class="input-field"
+                value="${escapeHtml(description)}"
+            >
+
+
+            <label>
+                User
+            </label>
+
+            <input
+                id="tamperUser"
+                class="input-field"
+                value="${escapeHtml(user)}"
+            >
+
+
+            <div class="tamper-modal-actions">
+
+                <button
+                    class="btn btn-outline"
+                    onclick="closeTamperForm()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    class="btn tamper-danger"
+                    onclick="submitTamper('${id}')"
+                >
+                    Tamper Record
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(modal);
+}
+
+
+// ======================================================
+// CLOSE TAMPER FORM
+// ======================================================
+
+function closeTamperForm() {
+
+    const modal =
+        document.getElementById("tamperModal");
+
+    if (modal) {
+        modal.remove();
     }
+}
 
 
-    // Random action
-    const target =
-        availableItems[
-            Math.floor(
-                Math.random() * availableItems.length
-            )
-        ];
+// ======================================================
+// SUBMIT TAMPER
+// ======================================================
 
+async function submitTamper(id) {
 
-    const decisionId = target.dataset.id;
+    const data = {
+
+        agent_id:
+            document.getElementById(
+                "tamperAgent"
+            ).value,
+
+        amount:
+            Number(
+                document.getElementById(
+                    "tamperAmount"
+                ).value
+            ),
+
+        decision:
+            document.getElementById(
+                "tamperDecision"
+            ).value,
+
+        description:
+            document.getElementById(
+                "tamperDescription"
+            ).value,
+
+        user:
+            document.getElementById(
+                "tamperUser"
+            ).value
+    };
 
 
     try {
@@ -395,36 +571,52 @@ async function simulateTamper() {
         lineDelay = 0;
 
         pushLog(
-            "> sending tamper simulation request...",
-            "muted"
-        );
-
-        pushLog(
-            "> targeting action #" + decisionId,
-            "muted"
+            "> tampering action #" + id + "...",
+            "warn"
         );
 
 
-        // Actual backend request
         const result =
-            await tamperDecision(decisionId);
+            await tamperDecision(
+                id,
+                data
+            );
 
 
         console.log(
-            "Tamper API response:",
+            "Tamper response:",
             result
         );
 
 
+        closeTamperForm();
+
+
+        const item =
+            document.querySelector(
+                `.log-item[data-id="${id}"]`
+            );
+
+
+        if (item) {
+
+            markItemTampered(item);
+
+        }
+
+
         pushLog(
-            "> database record modified",
+            "> action #" + id +
+            " modified successfully",
             "warn"
         );
+
 
         pushLog(
             "> original hash preserved",
             "muted"
         );
+
 
         pushLog(
             "> running verification...",
@@ -432,15 +624,8 @@ async function simulateTamper() {
         );
 
 
-        // Backend se actual verification
         const verification =
-            await verifyDecision(decisionId);
-
-
-        console.log(
-            "Verification response:",
-            verification
-        );
+            await verifyDecision(id);
 
 
         const status =
@@ -461,28 +646,15 @@ async function simulateTamper() {
 
         if (isTampered) {
 
-            markItemTampered(target);
-
             pushLog(
-                "> ALERT: signature mismatch on action #" +
-                decisionId,
-                "warn"
-            );
-
-            pushLog(
-                "> stored hash does not match recomputed hash",
-                "warn"
-            );
-
-            pushLog(
-                "> record marked as TAMPERED — origin unverifiable",
+                "> HASH MISMATCH — TAMPER DETECTED",
                 "warn"
             );
 
         } else {
 
             pushLog(
-                "> verification returned a valid result",
+                "> verification passed",
                 "ok"
             );
         }
@@ -491,22 +663,16 @@ async function simulateTamper() {
     } catch (error) {
 
         console.error(
-            "Tamper request error:",
+            "Tamper error:",
             error
         );
 
         pushLog(
-            "> ERROR: tamper request failed",
-            "warn"
-        );
-
-        pushLog(
-            "> " + error.message,
+            "> ERROR: " + error.message,
             "warn"
         );
     }
 }
-
 
 // ======================================================
 // CREATE NEW ACTION
@@ -545,21 +711,43 @@ async function logNewAction() {
         const li = document.createElement('li');
         li.className = 'log-item';
         li.dataset.id = decisionId;
+        li.dataset.agent = agent;
+        li.dataset.amount = value;
+        li.dataset.decision = action;
+        li.dataset.description = action;
+        li.dataset.user = "dashboard-user";
 
         li.innerHTML = `
+
             <div class="log-main">
+
                 <span class="log-title">
-                    ${agent} — ${action}${value ? ' — ₹' + value : ''}
+                    ${escapeHtml(agent)}
+                    — ${escapeHtml(action)}
+                    ${value ? ' — ₹' + escapeHtml(value) : ''}
                 </span>
 
                 <span class="log-hash">
-                    ${realHash}
+                    ${formatHash(realHash)}
                 </span>
+
             </div>
 
-            <span class="badge verified">
-                Verified
-            </span>
+
+            <div class="log-actions">
+
+                <span class="badge verified">
+                    Verified
+                </span>
+
+                <button
+                    class="tamper-action-btn"
+                    onclick="openTamperForm(this.closest('.log-item'))"
+                >
+                    Simulate Tamper
+                </button>
+
+            </div>
         `;
 
         list.appendChild(li);

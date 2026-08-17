@@ -1,14 +1,3 @@
-"""
-decisions.py (routes)
-
-Handles the basic CRUD-style endpoints for decisions:
-    - POST /decisions          -> create a new decision
-    - GET  /decisions/{id}     -> fetch one decision by its ID
-
-This is where we connect the database, the hashing logic, and the
-schemas together to actually respond to HTTP requests.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -48,8 +37,6 @@ def create_decision(payload: DecisionCreate, db: Session = Depends(get_db)):
 
     db.add(new_decision)
     db.commit()
-    # refresh() reloads the object from the DB so we get the
-    # auto-generated fields, like "id" and "created_at".
     db.refresh(new_decision)
 
     return new_decision
