@@ -2,7 +2,7 @@
 models.py
 
 This file defines the database tables using SQLAlchemy models.
-For the first version of AgentLedger, we only need ONE table:
+For the first version of AgentSeal, we only need ONE table:
 "decisions".
 
 Each row in this table represents one decision made by an AI agent,

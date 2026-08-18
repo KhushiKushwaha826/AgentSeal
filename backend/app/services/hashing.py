@@ -1,7 +1,7 @@
 """
 hashing.py
 
-This is the MOST IMPORTANT file in AgentLedger. It is responsible
+This is the MOST IMPORTANT file in AgentSeal. It is responsible
 for turning a decision's data into a single SHA-256 hash.
 
 WHY DOES THIS MATTER?

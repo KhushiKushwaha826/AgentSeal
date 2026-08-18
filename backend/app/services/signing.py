@@ -1,7 +1,7 @@
 """
 signing.py
 
-NOTE: Digital signing is NOT used by the main AgentLedger flow yet.
+NOTE: Digital signing is NOT used by the main AgentSeal flow yet.
 Hashing + verification (see hashing.py and verification.py) is
 enough to demonstrate tamper detection for the hackathon.
 
