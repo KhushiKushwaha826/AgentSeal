@@ -1,4 +1,4 @@
-# AgentLedger
+# AgentSeal
 
 AgentLedger is an AI decision audit and tamper-detection system.
 
