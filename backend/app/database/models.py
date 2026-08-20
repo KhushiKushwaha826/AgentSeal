@@ -43,3 +43,5 @@ class Decision(Base):
     user = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     original_hash = Column(String, nullable=False)
+    signature = Column(String, nullable=True)       # ECDSA signature over original_hash
+    chain_tx_hash = Column(String, nullable=True)    # blockchain transaction hash, once anchored

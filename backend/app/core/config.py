@@ -19,6 +19,12 @@ load_dotenv()
 # If DATABASE_URL is not found in .env, we fall back to a default
 # SQLite file called "agentledger.db" in the backend folder.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./agentledger.db")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+WALLET_PRIVATE_KEY = os.getenv("WALLET_PRIVATE_KEY")
+AMOY_RPC_URL = os.getenv("AMOY_RPC_URL")
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+
+
 
 # The name of our app, just used for things like API docs title.
-APP_NAME = "AgentLedger"
+APP_NAME = "AgentSeal"
