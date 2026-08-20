@@ -5,6 +5,8 @@ from app.database.database import get_db
 from app.database.models import Decision
 from app.schemas.decision import DecisionCreate, DecisionResponse
 from app.services.hashing import generate_hash
+from app.blockchain.signing import sign_decision_hash
+from app.blockchain.contract import record_action_on_chain
 
 router = APIRouter(prefix="/decisions", tags=["Decisions"])
 
@@ -69,5 +71,33 @@ def get_decision(decision_id: int, db: Session = Depends(get_db)):
 
     if decision is None:
         raise HTTPException(status_code=404, detail="Decision not found")
+
+    return decision
+
+# ======================================================
+# ANCHOR A DECISION TO THE BLOCKCHAIN (Day 3, new)
+# ======================================================
+@router.post("/{decision_id}/anchor", response_model=DecisionResponse)
+def anchor_decision(decision_id: int, db: Session = Depends(get_db)):
+    """
+    Signs this decision's hash with our wallet, then permanently
+    records it on Polygon Amoy. This is a SEPARATE step from
+    creating a decision, since it takes longer (real blockchain
+    transaction) and costs a small amount of test gas.
+    """
+    decision = db.query(Decision).filter(Decision.id == decision_id).first()
+    if decision is None:
+        raise HTTPException(status_code=404, detail="Decision not found")
+
+    if decision.chain_tx_hash:
+        raise HTTPException(status_code=400, detail="This decision is already anchored on-chain")
+
+    signature = sign_decision_hash(decision.original_hash)
+    tx_hash = record_action_on_chain(decision.original_hash, signature)
+
+    decision.signature = signature
+    decision.chain_tx_hash = tx_hash
+    db.commit()
+    db.refresh(decision)
 
     return decision

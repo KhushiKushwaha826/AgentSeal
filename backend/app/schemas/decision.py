@@ -40,6 +40,8 @@ class DecisionResponse(BaseModel):
     user: str
     created_at: datetime
     original_hash: str
+    signature: str | None = None
+    chain_tx_hash: str | None = None
 
     class Config:
         # This lets Pydantic read data directly from a SQLAlchemy

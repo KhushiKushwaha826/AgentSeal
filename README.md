@@ -1,6 +1,6 @@
 # AgentSeal
 
-AgentLedger is an AI decision audit and tamper-detection system.
+AgentSeal is an AI decision audit and tamper-detection system.
 
 This repo currently contains the **backend only** (a simple FastAPI +
 SQLite service). Frontend, blockchain, and LLM agent integration are
