@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentSeal — Chain of Custody</title>
+<style>
+  :root{
+    --ink:#0B121B;
+    --surface:#141F2E;
+    --surface-2:#1B2839;
+    --line:#2A3B52;
+    --text:#E8EFF7;
+    --muted:#8298B2;
+    --seal:#C9A227;
+    --sealed:#3DDC97;
+    --broken:#FF6B6B;
+    --idle:#5E7align;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ink); color:var(--text);
+    font-family:var(--sans); line-height:1.5;
+    padding:32px 20px 80px;
+  }
+  .wrap{max-width:860px; margin:0 auto}
+
+  header{border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:28px}
+  h1{
+    margin:0; font-size:30px; letter-spacing:-.02em; font-weight:650;
+  }
+  h1 .mark{color:var(--seal)}
+  .sub{color:var(--muted); font-size:14px; margin-top:6px}
+  .contract{
+    font-family:var(--mono); font-size:11px; color:var(--muted);
+    margin-top:10px; word-break:break-all;
+  }
+  .contract a{color:var(--seal); text-decoration:none}
+  .contract a:hover{text-decoration:underline}
+
+  /* ---- create panel ---- */
+  .panel{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:18px; margin-bottom:28px;
+  }
+  .panel h2{font-size:13px; text-transform:uppercase; letter-spacing:.09em;
+    color:var(--muted); margin:0 0 14px; font-weight:600}
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  input{
+    background:var(--ink); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:6px; font-size:14px; font-family:var(--sans);
+    flex:1; min-width:120px;
+  }
+  input:focus{outline:2px solid var(--seal); outline-offset:1px; border-color:transparent}
+  #request{flex:3; min-width:220px}
+
+  button{
+    font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+    border-radius:6px; padding:10px 16px; border:1px solid var(--line);
+    background:var(--surface-2); color:var(--text); transition:.15s;
+  }
+  button:hover:not(:disabled){border-color:var(--seal); color:var(--seal)}
+  button:disabled{opacity:.45; cursor:wait}
+  button:focus-visible{outline:2px solid var(--seal); outline-offset:2px}
+  .primary{background:var(--seal); color:#1A1400; border-color:var(--seal)}
+  .primary:hover:not(:disabled){background:#E0B62C; color:#1A1400}
+  .danger:hover:not(:disabled){border-color:var(--broken); color:var(--broken)}
+
+  /* ---- decision cards ---- */
+  .card{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:18px; margin-bottom:14px;
+    border-left:3px solid var(--line);
+  }
+  .card.is-sealed{border-left-color:var(--sealed)}
+  .card.is-broken{border-left-color:var(--broken)}
+
+  .card-top{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap}
+  .who{font-size:16px; font-weight:600}
+  .who .id{color:var(--muted); font-weight:400; font-size:13px; margin-right:8px}
+  .verdict{font-family:var(--mono); font-size:12px; letter-spacing:.06em}
+  .verdict.approved{color:var(--sealed)}
+  .verdict.rejected{color:var(--broken)}
+  .desc{color:var(--muted); font-size:13px; margin-top:6px}
+
+  .badges{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .badge{
+    font-family:var(--mono); font-size:11px; letter-spacing:.05em;
+    padding:4px 9px; border-radius:4px; border:1px solid currentColor;
+  }
+  .b-sealed{color:var(--sealed)}
+  .b-broken{color:var(--broken); background:rgba(255,107,107,.1)}
+  .b-idle{color:var(--muted)}
+
+  /* signature block — the thesis of the page */
+  .ledger{
+    margin-top:14px; padding:12px; background:var(--ink);
+    border-radius:6px; border:1px solid var(--line);
+    font-family:var(--mono); font-size:11px; overflow-x:auto;
+  }
+  .ledger div{display:flex; gap:10px; padding:2px 0; white-space:nowrap}
+  .ledger .k{color:var(--muted); min-width:118px; flex-shrink:0}
+  .ledger .v{color:var(--text)}
+  .ledger .v.diff{color:var(--broken)}
+  .ledger .v.good{color:var(--sealed)}
+  .ledger a{color:var(--seal)}
+
+  .actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+
+  .note{color:var(--muted); font-size:12px; margin-top:10px; font-family:var(--mono)}
+  .note.err{color:var(--broken)}
+
+  #banner{
+    display:none; background:rgba(255,107,107,.1); border:1px solid var(--broken);
+    color:var(--broken); padding:14px; border-radius:8px; margin-bottom:20px;
+    font-size:13px;
+  }
+  #banner code{font-family:var(--mono); background:rgba(0,0,0,.3); padding:1px 5px; border-radius:3px}
+  #empty{color:var(--muted); text-align:center; padding:40px; font-size:14px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+        <a href="/" style="color:#8298B2;text-decoration:none;font-size:13px;">← Back to dashboard</a>
+    <h1>Agent<span class="mark">Seal</span></h1>
+    <div class="sub">Every AI decision is hashed, signed, and sealed onto Polygon Amoy. The database can be edited. The seal cannot.</div>
+    <div class="contract">contract
+      <a id="contractLink" target="_blank" rel="noopener"></a>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <div class="panel">
+    <h2>New expense request</h2>
+    <div class="row" style="margin-bottom:10px">
+      <input id="user" placeholder="Requested by" value="khushi">
+      <input id="amount" type="number" placeholder="Amount" value="250">
+      <input id="agent" placeholder="Agent ID" value="agent-1">
+    </div>
+    <div class="row">
+      <input id="request" placeholder="What is this expense for?" value="Team lunch for 5 people">
+      <button class="primary" id="decideBtn">Ask the agent</button>
+      <button id="reloadBtn">Reload</button>
+    </div>
+    <div class="note" id="decideNote"></div>
+  </div>
+
+  <div id="list"></div>
+  <div id="empty">No decisions yet.</div>
+
+</div>
+
+<script>
+// ---- change this only if your backend runs elsewhere ----
+const API = "http://127.0.0.1:8000";
+const CONTRACT = "0x3F1040D0776B4e841FCe117857aB5FBfE8C5eD95";
+const SCAN = "https://amoy.polygonscan.com";
+
+const $ = id => document.getElementById(id);
+$("contractLink").textContent = CONTRACT;
+$("contractLink").href = SCAN + "/address/" + CONTRACT;
+
+const short = s => !s ? "—" : (s.length > 22 ? s.slice(0,10) + "…" + s.slice(-8) : s);
+const tx = h => h ? (h.startsWith("0x") ? h : "0x" + h) : null;
+
+function banner(msg){
+  const b = $("banner");
+  b.style.display = "block";
+  b.innerHTML = msg;
+}
+
+async function api(path, opts){
+  const res = await fetch(API + path, opts);
+  if(!res.ok){
+    let detail = "";
+    try { detail = JSON.stringify(await res.json()); } catch(e) { detail = await res.text(); }
+    throw new Error(res.status + " — " + detail.slice(0,200));
+  }
+  return res.json();
+}
+
+// ---------- render ----------
+function card(d, v){
+  const el = document.createElement("div");
+  el.className = "card";
+  const tampered = v && v.status === "TAMPERED";
+  const sealed   = v && v.on_chain_verified;
+  if (tampered) el.classList.add("is-broken");
+  else if (sealed) el.classList.add("is-sealed");
+
+  const verdict = (d.decision || "").toUpperCase();
+
+  let badges = "";
+  if (v){
+    badges += tampered
+      ? `<span class="badge b-broken">RECORD ALTERED</span>`
+      : `<span class="badge b-sealed">HASH INTACT</span>`;
+    badges += sealed
+      ? `<span class="badge b-sealed">SEALED ON CHAIN</span>`
+      : `<span class="badge b-idle">NOT SEALED</span>`;
+  } else {
+    badges = `<span class="badge b-idle">UNCHECKED</span>`;
+  }
+
+  let ledger = "";
+  if (v){
+    const same = v.original_hash === v.current_hash;
+    ledger = `<div class="ledger">
+      <div><span class="k">sealed hash</span><span class="v">${v.original_hash || "—"}</span></div>
+      <div><span class="k">hash today</span><span class="v ${same?"good":"diff"}">${v.current_hash || "—"}</span></div>
+      <div><span class="k">signed by</span><span class="v">${v.chain_signer || "— not yet sealed —"}</span></div>
+      <div><span class="k">transaction</span><span class="v">${
+        v.chain_tx_hash
+          ? `<a href="${SCAN}/tx/${tx(v.chain_tx_hash)}" target="_blank" rel="noopener">${short(tx(v.chain_tx_hash))} ↗</a>`
+          : "— not yet sealed —"
+      }</span></div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="card-top">
+      <div class="who"><span class="id">#${d.id}</span>${d.user} · ₹${d.amount}</div>
+      <div class="verdict ${verdict === "APPROVED" ? "approved" : "rejected"}">${verdict || "—"}</div>
+    </div>
+    <div class="desc">${d.description || ""}</div>
+    <div class="badges">${badges}</div>
+    ${ledger}
+    <div class="actions">
+      <button data-act="verify" data-id="${d.id}">Check seal</button>
+      <button data-act="anchor" data-id="${d.id}">Seal on chain</button>
+      <button data-act="tamper" data-id="${d.id}" class="danger">Edit the database</button>
+    </div>
+    <div class="note" id="note-${d.id}"></div>`;
+  return el;
+}
+
+// ---------- data ----------
+let decisions = [];
+const checks = {};
+
+async function load(){
+  try{
+    decisions = await api("/decisions/");
+    $("banner").style.display = "none";
+  }catch(e){
+    banner(`Can't reach the backend at <code>${API}</code>. Make sure <code>uvicorn app.main:app --reload</code> is running.
+      If it is, your API is blocking this page — add CORSMiddleware to <code>app/main.py</code> (instructions in chat). <br><br>${e.message}`);
+    return;
+  }
+  draw();
+  for (const d of decisions){ await check(d.id, true); }
+}
+
+function draw(){
+  const list = $("list");
+  list.innerHTML = "";
+  $("empty").style.display = decisions.length ? "none" : "block";
+  decisions.slice().sort((a,b) => b.id - a.id).forEach(d => list.appendChild(card(d, checks[d.id])));
+}
+
+async function check(id, quiet){
+  try{
+    checks[id] = await api(`/decisions/${id}/verify`);
+    draw();
+  }catch(e){
+    if(!quiet) note(id, e.message, true);
+  }
+}
+
+function note(id, msg, isErr){
+  const n = $("note-" + id);
+  if(n){ n.textContent = msg; n.className = "note" + (isErr ? " err" : ""); }
+}
+
+// ---------- actions ----------
+$("list").addEventListener("click", async e => {
+  const btn = e.target.closest("button[data-act]");
+  if(!btn) return;
+  const id = btn.dataset.id, act = btn.dataset.act;
+  const all = [...document.querySelectorAll(`button[data-id="${id}"]`)];
+  all.forEach(b => b.disabled = true);
+
+  try{
+    if(act === "verify"){
+      note(id, "Reading the chain…");
+      await check(id);
+    }
+    if(act === "anchor"){
+      note(id, "Writing to Polygon Amoy — this takes 10–20 seconds…");
+      await api(`/decisions/${id}/anchor`, {method:"POST"});
+      await check(id);
+    }
+    if(act === "tamper"){
+      const d = decisions.find(x => String(x.id) === String(id));
+      if(!d) throw new Error("Decision not found — hit Reload first.");
+      const inflated = Math.round((d.amount || 1) * 100);
+      note(id, `Rewriting the stored amount to ₹${inflated}…`);
+      await api(`/decisions/${id}/tamper`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          agent_id: d.agent_id,
+          amount: inflated,
+          decision: d.decision,
+          description: d.description || "",
+          user: d.user
+        })
+      });
+      decisions = await api("/decisions/");
+      await check(id);
+      note(id, `Amount was changed from ₹${d.amount} to ₹${inflated}. The seal did not move.`);
+    }
+  }catch(err){
+    note(id, err.message, true);
+  }finally{
+    [...document.querySelectorAll(`button[data-id="${id}"]`)].forEach(b => b.disabled = false);
+  }
+});
+
+$("decideBtn").addEventListener("click", async () => {
+  const btn = $("decideBtn");
+  btn.disabled = true;
+  $("decideNote").className = "note";
+  $("decideNote").textContent = "The agent is deciding…";
+  try{
+    const body = {
+      agent_id: $("agent").value,
+      user: $("user").value,
+      amount: parseFloat($("amount").value),
+      request_text: $("request").value
+    };
+    const d = await api("/agent/decide", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    $("decideNote").textContent = `Agent returned ${d.decision} for #${d.id}.`;
+    await load();
+  }catch(e){
+    $("decideNote").className = "note err";
+    $("decideNote").textContent = "Agent failed — " + e.message + "  (check the uvicorn terminal for the traceback)";
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+$("reloadBtn").addEventListener("click", load);
+load();
+</script>
+</body>
+</html>

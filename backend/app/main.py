@@ -38,6 +38,15 @@ app = FastAPI(
     description="AI decision audit and tamper-detection system (hackathon version).",
     version="0.1.0",
 )
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -59,3 +68,7 @@ app.include_router(agent.router)
 @app.get("/")
 def read_root():
     return FileResponse(FRONTEND_DIR / "index.html")
+
+@app.get("/blockchain")
+def read_blockchain():
+    return FileResponse(FRONTEND_DIR / "blockchain.html")
