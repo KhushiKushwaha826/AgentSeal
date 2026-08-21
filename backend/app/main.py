@@ -1,20 +1,4 @@
-"""
-main.py
 
-This is the entry point of the AgentLedger backend. Running this
-file (via uvicorn) starts the actual API server.
-
-What happens here:
-    1. Create the FastAPI app.
-    2. Create the database tables if they don't exist yet.
-    3. Include all our route files (decisions, verification, tamper, agent).
-
-To run this project:
-    cd backend
-    uvicorn app.main:app --reload
-
-Then open http://127.0.0.1:8000/docs to see the interactive API docs.
-"""
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles

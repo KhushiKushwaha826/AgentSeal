@@ -1,6 +1,6 @@
 # AgentSeal
 
-AgentSeal is an AI decision audit and tamper-detection system.
+AgentLedger is an AI decision audit and tamper-detection system.
 
 This repo currently contains the **backend only** (a simple FastAPI +
 SQLite service). Frontend, blockchain, and LLM agent integration are
@@ -51,3 +51,5 @@ pytest
 - Smart contract + blockchain storage of the original hash
 - LLM agent integration to generate decisions automatically
 - Frontend to visualize the VERIFIED / TAMPERED demo
+
+
